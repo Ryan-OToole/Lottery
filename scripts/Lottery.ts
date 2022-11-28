@@ -1,18 +1,21 @@
 import { ethers } from "hardhat";
 import * as readline from "readline";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { Lottery, LotteryToken } from "../typechain-types";
+import { Lottery, LotteryToken, LotteryToken__factory, Lottery__factory } from "../typechain-types";
 
 let contract: Lottery;
 let token: LotteryToken;
 let accounts: SignerWithAddress[];
 
-const BET_PRICE = 1;
-const BET_FEE = 0.2;
+const NAME = "Lottery Token";
+const SYMBOL = "LTT";
+const BET_RATIO = 5;
+const BET_PRICE = ethers.utils.parseEther("1");
+const BET_FEE = ethers.utils.parseEther("0.2");
 
 async function main() {
-  await initContracts();
   await initAccounts();
+  await initContracts();
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
@@ -20,12 +23,18 @@ async function main() {
   mainMenu(rl);
 }
 
-async function initContracts() {
-  // TODO: set up contracts
+async function initAccounts() {
+  accounts = await ethers.getSigners();
+  console.log('accounts', accounts[0]);
 }
 
-async function initAccounts() {
-  // TODO: set up accounts
+async function initContracts() {
+  const lotteryContractFactroy = new Lottery__factory(accounts[0]);
+  contract =  await lotteryContractFactroy.deploy(NAME, SYMBOL, BET_RATIO, BET_PRICE, BET_FEE);
+  await contract.deployed();
+  const tokenAddress = await contract.paymentToken();
+  const lotteryTokenContractFactory = new LotteryToken__factory();
+  token = lotteryTokenContractFactory.attach(tokenAddress);
 }
 
 async function mainMenu(rl: readline.Interface) {

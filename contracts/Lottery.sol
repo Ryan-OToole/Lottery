@@ -6,10 +6,13 @@ import {LotteryToken} from "./Token.sol";
 
 contract Lottery is Ownable {
     LotteryToken public paymentToken;
+
     uint256 public closingTimeStamp;
     uint256 public betFee;
     uint256 public betPrice;
     uint256 public purchaseRatio;
+
+    bool public betsOpen;
 
     constructor(
         string memory name,
@@ -25,6 +28,8 @@ contract Lottery is Ownable {
     }
 
     function openBets(uint256 _closingTimeStamp) external onlyOwner {
+        require(!betsOpen, "Bets are already open");
         closingTimeStamp = _closingTimeStamp;
+        betsOpen = true;
     }
 }
