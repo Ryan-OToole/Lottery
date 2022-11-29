@@ -34,7 +34,7 @@ async function initContracts() {
   await contract.deployed();
   const tokenAddress = await contract.paymentToken();
   const lotteryTokenContractFactory = new LotteryToken__factory();
-  token = lotteryTokenContractFactory.attach(tokenAddress);
+  token = lotteryTokenContractFactory.attach(tokenAddress).connect(ethers.provider);
 }
 
 async function mainMenu(rl: readline.Interface) {
@@ -164,23 +164,34 @@ function menuOptions(rl: readline.Interface) {
 }
 
 async function checkState() {
-  // TODO
+  const betsOpen = await contract.betsOpen();
+  console.log(`The bets are ${betsOpen ? "open" : "closed"}`);
+  if (!betsOpen) return;
+  const closingTimeStamp = await contract.closingTimeStamp();
+  const lastBlock = await ethers.provider.getBlock("latest");
+  console.log(`The last block timestamp was ${new Date(lastBlock.timestamp * 1000).toLocaleTimeString()} and the lottery is only going to accepts bets until ${new Date(closingTimeStamp.toNumber() * 1000).toLocaleTimeString()}`);
 }
 
 async function openBets(duration: string) {
-  // TODO
+  const lastBlock = await ethers.provider.getBlock("latest");
+  const timeStamp = lastBlock.timestamp + parseFloat(duration);
+  const tx = await contract.openBets(timeStamp);
+  await tx.wait();
 }
 
 async function displayBalance(index: string) {
-  // TODO
+  const balanceBN = await accounts[Number(index)].getBalance();
+  console.log(`The account of index ${index} has a balance of ${ethers.utils.formatEther(balanceBN)} ETH`)
 }
 
 async function buyTokens(index: string, amount: string) {
-  // TODO
+  const tx = await contract.connect(accounts[Number(index)]).purchaseTokens({value: ethers.utils.parseEther(amount).div(BET_RATIO)});
+  await tx.wait();
 }
 
 async function displayTokenBalance(index: string) {
-  // TODO
+  const tokenBalance = await token.balanceOf(accounts[Number(index)].address);
+  console.log(`The account of index ${index} has a balance of ${ethers.utils.formatEther(tokenBalance)} ${SYMBOL}`);
 }
 
 async function bet(index: string, amount: string) {
