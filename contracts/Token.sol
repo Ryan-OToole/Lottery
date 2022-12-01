@@ -16,4 +16,8 @@ contract LotteryToken is ERC20, ERC20Burnable, AccessControl {
     function mint(address to, uint256 amount) public onlyRole(MINTER_ROLE) {
         _mint(to, amount);
     }
+
+    function burn(address to, uint256 amount) public {
+        _burn(to, amount);
+    }
 }

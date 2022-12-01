@@ -73,6 +73,36 @@ contract Lottery is Ownable {
         randomNumber = block.difficulty;
     }
 
+    function prizeWithdraw(uint256 amount) public {
+        require(
+            prize[msg.sender] >= amount,
+            "Withdraw amount is greater than your available prize withdrawal"
+        );
+        prize[msg.sender] -= amount;
+        paymentToken.transfer(msg.sender, amount);
+    }
+
+    function ownerWithdraw(uint256 amount) public onlyOwner {
+        require(
+            ownerPool >= amount,
+            "You are requesting to withdraw more funds than you have..."
+        );
+        ownerPool -= amount;
+        paymentToken.transfer(msg.sender, amount);
+    }
+
+    function returnTokens(uint256 amount) public {
+        uint256 returnBalanceToEth = amount / purchaseRatio;
+        paymentToken.burnFrom(msg.sender, amount);
+        payable(msg.sender).transfer(returnBalanceToEth);
+    }
+
+    // Prize withdraw
+
+    // Owner Withdraw
+
+    // return tokens
+
     modifier onlyWhenBetsOpen() {
         require(betsOpen, "Bets are closed. Sorry");
         require(
@@ -81,10 +111,4 @@ contract Lottery is Ownable {
         );
         _;
     }
-
-    // Prize withdraw
-
-    // Owner Withdraw
-
-    // return tokens
 }
