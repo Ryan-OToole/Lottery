@@ -16,7 +16,7 @@ contract Lottery is Ownable {
     uint256 public ownerPool;
     uint256 public prizePool;
 
-    mapping(address => uint256) prize;
+    mapping(address => uint256) public prize;
 
     address[] _slots;
 
@@ -50,10 +50,18 @@ contract Lottery is Ownable {
     }
 
     function bet() public onlyWhenBetsOpen {
-        paymentToken.transferFrom(msg.sender, address(this), betPrice + betFee);
         ownerPool += betFee;
         prizePool += betPrice;
         _slots.push(msg.sender);
+        paymentToken.transferFrom(msg.sender, address(this), betPrice + betFee);
+    }
+
+    function betMany(uint256 times) public {
+        require(times > 0);
+        while (times > 0) {
+            bet();
+            times--;
+        }
     }
 
     function closeLottery() external {
@@ -80,6 +88,8 @@ contract Lottery is Ownable {
         );
         prize[msg.sender] -= amount;
         paymentToken.transfer(msg.sender, amount);
+        // is this the same???
+        // paymentToken.transferFrom(address(this), msg.sender, betPrice + betFee);
     }
 
     function ownerWithdraw(uint256 amount) public onlyOwner {
@@ -96,12 +106,6 @@ contract Lottery is Ownable {
         paymentToken.burnFrom(msg.sender, amount);
         payable(msg.sender).transfer(returnBalanceToEth);
     }
-
-    // Prize withdraw
-
-    // Owner Withdraw
-
-    // return tokens
 
     modifier onlyWhenBetsOpen() {
         require(betsOpen, "Bets are closed. Sorry");

@@ -25,7 +25,6 @@ async function main() {
 
 async function initAccounts() {
   accounts = await ethers.getSigners();
-  console.log('accounts', accounts[0]);
 }
 
 async function initContracts() {
@@ -195,24 +194,44 @@ async function displayTokenBalance(index: string) {
 }
 
 async function bet(index: string, amount: string) {
-  // TODO
-}
+  // const tokenBalanceb4 = await displayTokenBalance(index);
+  // console.log('tokenBalanceb4', tokenBalanceb4);
+  const approveTx = await token.connect(accounts[Number(index)]).approve(contract.address, ethers.constants.MaxUint256);
+  await approveTx.wait();
+  const tx = await contract.connect(accounts[Number(index)]).betMany(Number(amount));
+  const receipt = await tx.wait();
+  console.log(`Bets placed (${receipt.transactionHash})\n`);
+  // const tokenBalanceAfter = await displayTokenBalance(index);
+  // console.log('tokenBalanceAfter', tokenBalanceAfter);
+  }
+
 
 async function closeLottery() {
-  // TODO
+  const closeTx = await contract.closeLottery();
+  const recepit = await closeTx.wait();
+  console.log(`closed lottery with ${recepit.transactionHash}`)
 }
 
 async function displayPrize(index: string) {
-  // TODO
-  return "TODO";
+  const prizeBN = await contract.prize(accounts[Number(index)].address)
+  const prize = ethers.utils.formatEther(prizeBN);
+  console.log('prizeBN', prizeBN);
+  console.log('ethers.utils.formatEther(prizeBN)', prize);
+  console.log(`The accounts of address ${accounts[Number(index)]} has earned a prize of ${prize} tokens`)
 }
 
 async function claimPrize(index: string, amount: string) {
-  // TODO
+  console.log('amount', amount);
+  console.log('ethers.utils.parseEther(amount)', ethers.utils.parseEther(amount));
+  const tx = await contract.connect(accounts[Number(index)]).prizeWithdraw(ethers.utils.parseEther(amount));
+  const recepit = await tx.wait();
+  console.log(`Prize claimed ${recepit.transactionHash}`)
 }
 
 async function displayOwnerPool() {
-  // TODO
+  const ownerPoolBN = await contract.ownerPool();
+  const ownerPool = ethers.utils.formatEther(ownerPoolBN);
+  console.log(`Owner pool has ${ownerPool} ${SYMBOL} tokens`)
 }
 
 async function withdrawTokens(amount: string) {
